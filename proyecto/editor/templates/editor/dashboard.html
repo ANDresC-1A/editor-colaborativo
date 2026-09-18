@@ -1,0 +1,725 @@
+{% extends 'editor/base.html' %}
+{% block titulo %}Mis documentos — Editor Colaborativo{% endblock %}
+
+{% block contenido %}
+
+<style>
+    /* =========================================================
+       DASHBOARD - EDITOR COLABORATIVO
+       Solo diseño. La lógica Django permanece intacta.
+    ========================================================= */
+
+    .dashboard-page {
+        min-height: calc(100vh - 40px);
+        padding: 35px 30px 50px;
+
+        background:
+            radial-gradient(
+                circle at top left,
+                rgba(99, 102, 241, .10),
+                transparent 32%
+            ),
+            radial-gradient(
+                circle at bottom right,
+                rgba(14, 165, 233, .08),
+                transparent 32%
+            ),
+            #f5f7fb;
+    }
+
+    .dashboard-container {
+        max-width: 1250px;
+        margin: 0 auto;
+    }
+
+
+    /* =========================================================
+       ENCABEZADO
+    ========================================================= */
+
+    .encabezado-pagina {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 25px;
+
+        margin-bottom: 25px;
+        padding: 30px 32px;
+
+        background: rgba(255, 255, 255, .96);
+        border: 1px solid #e6eaf0;
+        border-radius: 22px;
+
+        box-shadow:
+            0 10px 35px rgba(15, 23, 42, .07);
+    }
+
+    .encabezado-pagina h1 {
+        margin: 0 0 8px;
+
+        color: #111827;
+
+        font-size: 30px;
+        font-weight: 800;
+
+        letter-spacing: -.7px;
+    }
+
+    .subtitulo {
+        margin: 0;
+
+        color: #64748b;
+
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
+    /* =========================================================
+       BOTONES
+    ========================================================= */
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        min-height: 40px;
+        padding: 9px 17px;
+
+        border-radius: 11px;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        border: 1px solid transparent;
+
+        cursor: pointer;
+
+        transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            background .18s ease,
+            border-color .18s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-primario {
+        background: linear-gradient(
+            135deg,
+            #6366f1,
+            #7c3aed
+        );
+
+        color: white;
+
+        box-shadow:
+            0 7px 18px rgba(99, 102, 241, .25);
+    }
+
+    .btn-primario:hover {
+        box-shadow:
+            0 10px 24px rgba(99, 102, 241, .34);
+    }
+
+    .btn-secundario {
+        background: #ffffff;
+
+        color: #334155;
+
+        border-color: #e2e8f0;
+    }
+
+    .btn-secundario:hover {
+        background: #f8fafc;
+
+        border-color: #c7d2fe;
+
+        color: #4338ca;
+    }
+
+
+    /* =========================================================
+       BUSCADOR
+    ========================================================= */
+
+    .barra-busqueda {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        margin-bottom: 28px;
+        padding: 14px;
+
+        background: rgba(255, 255, 255, .96);
+
+        border: 1px solid #e6eaf0;
+        border-radius: 17px;
+
+        box-shadow:
+            0 6px 22px rgba(15, 23, 42, .05);
+    }
+
+    .barra-busqueda input {
+        flex: 1;
+
+        min-width: 0;
+        height: 42px;
+
+        padding: 0 15px;
+
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+
+        outline: none;
+
+        background: #f8fafc;
+
+        color: #1e293b;
+
+        font-size: 14px;
+
+        transition:
+            border-color .2s ease,
+            box-shadow .2s ease,
+            background .2s ease;
+    }
+
+    .barra-busqueda input::placeholder {
+        color: #94a3b8;
+    }
+
+    .barra-busqueda input:focus {
+        background: white;
+
+        border-color: #a5b4fc;
+
+        box-shadow:
+            0 0 0 3px rgba(99, 102, 241, .10);
+    }
+
+
+    /* =========================================================
+       SECCIONES
+    ========================================================= */
+
+    .seccion {
+        margin-bottom: 25px;
+
+        overflow: hidden;
+
+        background: rgba(255, 255, 255, .97);
+
+        border: 1px solid #e6eaf0;
+        border-radius: 20px;
+
+        box-shadow:
+            0 8px 28px rgba(15, 23, 42, .055);
+    }
+
+    .seccion h2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        margin: 0;
+
+        padding: 20px 24px;
+
+        color: #1e293b;
+
+        font-size: 17px;
+        font-weight: 750;
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .seccion h2::before {
+        content: "";
+
+        width: 5px;
+        height: 20px;
+
+        border-radius: 999px;
+
+        background: linear-gradient(
+            180deg,
+            #6366f1,
+            #8b5cf6
+        );
+    }
+
+
+    /* =========================================================
+       LISTA DE DOCUMENTOS
+    ========================================================= */
+
+    .lista-documentos {
+        list-style: none;
+
+        margin: 0;
+        padding: 0;
+    }
+
+    .doc-fila {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 20px;
+
+        padding: 19px 24px;
+
+        border-bottom: 1px solid #f1f5f9;
+
+        transition:
+            background .18s ease,
+            padding-left .18s ease;
+    }
+
+    .doc-fila:last-child {
+        border-bottom: none;
+    }
+
+    .doc-fila:hover {
+        background: #f8fafc;
+        padding-left: 28px;
+    }
+
+
+    /* =========================================================
+       TÍTULO DOCUMENTO
+    ========================================================= */
+
+    .doc-titulo {
+        margin-bottom: 6px;
+    }
+
+    .doc-titulo a {
+        color: #1e293b;
+
+        font-size: 15px;
+        font-weight: 700;
+
+        text-decoration: none;
+
+        transition: color .18s ease;
+    }
+
+    .doc-titulo a:hover {
+        color: #4f46e5;
+    }
+
+    .doc-meta {
+        color: #94a3b8;
+
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+
+    /* =========================================================
+       ETIQUETAS
+    ========================================================= */
+
+    .etiqueta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        min-width: 78px;
+
+        padding: 7px 11px;
+
+        border-radius: 999px;
+
+        font-size: 11px;
+        font-weight: 750;
+
+        letter-spacing: .2px;
+    }
+
+    .etiqueta-propietario {
+        background: #eef2ff;
+
+        color: #4338ca;
+
+        border: 1px solid #c7d2fe;
+    }
+
+    .etiqueta-editor {
+        background: #ecfdf5;
+
+        color: #047857;
+
+        border: 1px solid #a7f3d0;
+    }
+
+    .etiqueta-lector {
+        background: #fffbeb;
+
+        color: #92400e;
+
+        border: 1px solid #fde68a;
+    }
+
+
+    /* =========================================================
+       ESTADO VACÍO
+    ========================================================= */
+
+    .vacio {
+        margin: 0;
+
+        padding: 48px 25px;
+
+        text-align: center;
+
+        color: #94a3b8;
+
+        font-size: 14px;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(248, 250, 252, .7),
+                rgba(255, 255, 255, .9)
+            );
+    }
+
+    .vacio::before {
+        content: "📄";
+
+        display: block;
+
+        margin-bottom: 10px;
+
+        font-size: 30px;
+
+        opacity: .7;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 760px) {
+
+        .dashboard-page {
+            padding: 18px 12px 35px;
+        }
+
+        .encabezado-pagina {
+            align-items: stretch;
+
+            flex-direction: column;
+
+            padding: 23px;
+        }
+
+        .encabezado-pagina h1 {
+            font-size: 25px;
+        }
+
+        .encabezado-pagina .btn {
+            width: 100%;
+        }
+
+        .barra-busqueda {
+            flex-wrap: wrap;
+        }
+
+        .barra-busqueda input {
+            flex-basis: 100%;
+        }
+
+        .barra-busqueda .btn {
+            flex: 1;
+        }
+
+        .doc-fila {
+            align-items: flex-start;
+        }
+    }
+
+
+    @media (max-width: 480px) {
+
+        .doc-fila {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .doc-fila .etiqueta {
+            align-self: flex-start;
+        }
+
+        .barra-busqueda {
+            flex-direction: column;
+        }
+
+        .barra-busqueda input,
+        .barra-busqueda .btn {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+    }
+
+</style>
+
+
+<div class="dashboard-page">
+
+    <div class="dashboard-container">
+
+
+        <!-- =====================================================
+             ENCABEZADO
+        ====================================================== -->
+
+        <div class="encabezado-pagina">
+
+            <div>
+
+                <h1>
+                    Mis documentos
+                </h1>
+
+                <p
+                    class="subtitulo"
+                    style="margin-bottom:0;"
+                >
+                    Todo lo que has escrito y lo que otros han
+                    compartido contigo.
+                </p>
+
+            </div>
+
+
+            <a
+                href="{% url 'crear_documento' %}"
+                class="btn btn-primario"
+            >
+                 Nuevo documento
+            </a>
+
+        </div>
+
+
+        <!-- =====================================================
+             BUSCADOR
+        ====================================================== -->
+
+        <form
+            method="get"
+            class="barra-busqueda"
+        >
+
+            <input
+                type="search"
+                name="q"
+                placeholder="🔎 Buscar documentos..."
+                value="{{ query }}"
+            >
+
+            <button
+                type="submit"
+                class="btn btn-secundario"
+            >
+                Buscar
+            </button>
+
+
+            {% if query %}
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="btn btn-secundario"
+            >
+                Limpiar
+            </a>
+
+            {% endif %}
+
+        </form>
+
+
+        <!-- =====================================================
+             MIS DOCUMENTOS
+        ====================================================== -->
+
+        <div class="seccion">
+
+            <h2>
+                Mis documentos
+            </h2>
+
+
+            {% if documentos_propios %}
+
+            <ul class="lista-documentos">
+
+                {% for doc in documentos_propios %}
+
+                <li class="doc-fila">
+
+                    <div>
+
+                        <div class="doc-titulo">
+
+                            <a
+                                href="{% url 'documento' doc.id %}"
+                            >
+                                {{ doc.titulo }}
+                            </a>
+
+                        </div>
+
+
+                        <div class="doc-meta">
+
+                            Modificado hace
+                            {{ doc.actualizado|timesince }}
+
+                        </div>
+
+                    </div>
+
+
+                    <span
+                        class="etiqueta etiqueta-propietario"
+                    >
+                        Propietario
+                    </span>
+
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+
+            {% else %}
+
+            <p class="vacio">
+
+                {% if query %}
+
+                    No se encontraron documentos propios
+                    para "{{ query }}".
+
+                {% else %}
+
+                    Aún no tienes documentos.
+                    Crea el primero.
+
+                {% endif %}
+
+            </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- =====================================================
+             COMPARTIDOS CONMIGO
+        ====================================================== -->
+
+        <div class="seccion">
+
+            <h2>
+                Compartidos conmigo
+            </h2>
+
+
+            {% if documentos_compartidos %}
+
+            <ul class="lista-documentos">
+
+                {% for doc in documentos_compartidos %}
+
+                <li class="doc-fila">
+
+                    <div>
+
+                        <div class="doc-titulo">
+
+                            <a
+                                href="{% url 'documento' doc.id %}"
+                            >
+                                {{ doc.titulo }}
+                            </a>
+
+                        </div>
+
+
+                        <div class="doc-meta">
+
+                            {{ doc.propietario.username }}
+
+                            ·
+
+                            modificado hace
+                            {{ doc.actualizado|timesince }}
+
+                        </div>
+
+                    </div>
+
+
+                    <span
+                        class="etiqueta
+                        {% if doc.rol == 'Editor' %}
+                            etiqueta-editor
+                        {% else %}
+                            etiqueta-lector
+                        {% endif %}"
+                    >
+                        {{ doc.rol }}
+                    </span>
+
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+
+            {% else %}
+
+            <p class="vacio">
+
+                {% if query %}
+
+                    No se encontraron documentos compartidos
+                    para "{{ query }}".
+
+                {% else %}
+
+                    Nadie ha compartido documentos contigo todavía.
+
+                {% endif %}
+
+            </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+```

@@ -1,0 +1,22 @@
+{% extends 'editor/base.html' %}
+{% block titulo %}Restaurar versión — {{ documento.titulo }}{% endblock %}
+{% block clase_contenedor %}contenedor-angosto{% endblock %}
+
+{% block contenido %}
+<div class="tarjeta">
+    <h1>¿Deseas restaurar esta versión?</h1>
+    <div class="caja-confirmacion">
+        Vas a restaurar la versión del <strong>{{ version.fecha|date:"d/m/Y H:i" }}</strong>
+        (guardada por {{ version.usuario.username|default:"Desconocido" }}).<br><br>
+        El contenido actual del documento será reemplazado. Se guardará una copia
+        del estado actual en el historial antes de restaurar, por seguridad.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="acciones-fila">
+            <button type="submit" class="btn btn-primario">Restaurar</button>
+            <a href="{% url 'historial_documento' documento.id %}" class="btn btn-secundario">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

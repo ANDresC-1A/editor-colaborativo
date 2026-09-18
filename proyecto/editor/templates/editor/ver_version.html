@@ -1,0 +1,20 @@
+{% extends 'editor/base.html' %}
+{% block titulo %}Versión {{ version.id }} — {{ documento.titulo }}{% endblock %}
+
+{% block contenido %}
+<h1>Versión {{ version.id }} de «{{ documento.titulo }}»</h1>
+<p class="subtitulo">
+    {{ version.usuario.username|default:"Desconocido" }} · {{ version.fecha|date:"d/m/Y H:i" }}
+    · <a href="{% url 'historial_documento' documento.id %}">← Volver al historial</a>
+</p>
+
+<div class="tarjeta">
+    <pre class="contenido-version">{{ version.contenido }}</pre>
+    <div class="acciones-fila">
+        {% if documento.propietario == request.user %}
+        <a href="{% url 'restaurar_version' documento.id version.id %}" class="btn btn-primario">Restaurar esta versión</a>
+        {% endif %}
+        <a href="{% url 'documento' documento.id %}" class="btn btn-secundario">Volver al documento</a>
+    </div>
+</div>
+{% endblock %}

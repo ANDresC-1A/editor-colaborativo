@@ -1,0 +1,94 @@
+{% extends 'editor/base.html' %}
+
+{% block titulo %}
+Eliminar documento — Editor Colaborativo
+{% endblock %}
+
+{% block clase_contenedor %}
+contenedor-angosto
+{% endblock %}
+
+
+{% block contenido %}
+
+<div class="tarjeta tarjeta-eliminar">
+
+    <!-- ENCABEZADO -->
+    <div class="eliminar-icono">
+        🗑️
+    </div>
+
+    <h1>Eliminar documento</h1>
+
+    <p class="eliminar-subtitulo">
+        Estás a punto de eliminar este documento.
+    </p>
+
+
+    <!-- DOCUMENTO -->
+    <div class="documento-eliminar">
+
+        <span class="documento-eliminar-icono">
+            📄
+        </span>
+
+        <div>
+            <strong>
+                {{ documento.titulo }}
+            </strong>
+
+            <span>
+                Documento colaborativo
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- ADVERTENCIA -->
+    <div class="caja-confirmacion">
+
+        <strong>⚠️ Esta acción es permanente</strong>
+
+        <p>
+            ¿Deseas eliminar
+            <strong>«{{ documento.titulo }}»</strong>?
+        </p>
+
+        <p>
+            Se perderá el contenido del documento y todo su
+            historial de versiones. Esta acción no se puede
+            deshacer.
+        </p>
+
+    </div>
+
+
+    <!-- ACCIONES -->
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="acciones-eliminar">
+
+            <a
+                href="{% url 'documento' documento.id %}"
+                class="btn btn-secundario btn-cancelar"
+            >
+                ← Cancelar
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-peligro btn-eliminar"
+            >
+                🗑️ Eliminar definitivamente
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

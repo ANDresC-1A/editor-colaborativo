@@ -1,0 +1,170 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block titulo %}
+            Editor Colaborativo
+        {% endblock %}
+    </title>
+
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- CSS principal -->
+    <link
+        rel="stylesheet"
+        href="{% static 'editor/css/style.css' %}"
+    >
+
+    {% block extra_head %}
+    {% endblock %}
+</head>
+
+
+<body>
+
+    <!-- =====================================================
+         BARRA DE NAVEGACIÓN
+         ===================================================== -->
+
+    {% if user.is_authenticated %}
+
+    <header class="navbar">
+
+        <!-- LOGO / INICIO -->
+        <a
+            href="{% url 'dashboard' %}"
+            class="marca"
+            style="
+                text-decoration: none;
+                cursor: pointer;
+                pointer-events: auto;
+                position: relative;
+                z-index: 9999;
+            "
+        >
+            📄 Editor Colaborativo
+        </a>
+
+
+        <!-- MENÚ -->
+        <nav
+            style="
+                display: flex;
+                align-items: center;
+                gap: 20px;
+                position: relative;
+                z-index: 9999;
+            "
+        >
+
+            <!-- MIS DOCUMENTOS -->
+            <a
+                href="{% url 'dashboard' %}"
+                style="
+                    display: inline-block;
+                    text-decoration: none;
+                    cursor: pointer;
+                    pointer-events: auto;
+                    position: relative;
+                    z-index: 9999;
+                "
+            >
+                📁 Mis documentos
+            </a>
+
+
+            <!-- USUARIO -->
+            <span class="usuario">
+                {{ user.username }}
+            </span>
+
+
+            <!-- CERRAR SESIÓN -->
+            <a
+                href="{% url 'logout' %}"
+                class="btn btn-secundario btn-sm"
+                style="
+                    position: relative;
+                    z-index: 9999;
+                    pointer-events: auto;
+                    cursor: pointer;
+                "
+            >
+                Cerrar sesión
+            </a>
+
+        </nav>
+
+    </header>
+
+    {% endif %}
+
+
+    <!-- =====================================================
+         CONTENEDOR PRINCIPAL
+         ===================================================== -->
+
+    <div
+        class="
+            {% block clase_contenedor %}
+                contenedor
+            {% endblock %}
+        "
+    >
+
+        <!-- =================================================
+             MENSAJES DE DJANGO
+             ================================================= -->
+
+        {% if messages %}
+
+        <div class="mensajes">
+
+            {% for message in messages %}
+
+            <div class="mensaje mensaje-{{ message.tags }}">
+                {{ message }}
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             CONTENIDO DE CADA PÁGINA
+             ================================================= -->
+
+        {% block contenido %}
+        {% endblock %}
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT ESPECÍFICO DE CADA PÁGINA
+         ===================================================== -->
+
+    {% block extra_scripts %}
+    {% endblock %}
+
+
+</body>
+
+</html>

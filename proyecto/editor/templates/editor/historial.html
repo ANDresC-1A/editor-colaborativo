@@ -1,0 +1,185 @@
+{% extends 'editor/base.html' %}
+
+{% block titulo %}
+Historial de «{{ documento.titulo }}» — Editor Colaborativo
+{% endblock %}
+
+
+{% block contenido %}
+
+<!-- ============================================================
+     ENCABEZADO
+     ============================================================ -->
+
+<div class="historial-encabezado">
+
+    <div class="historial-icono">
+        🕘
+    </div>
+
+    <div class="historial-titulo">
+
+        <h1>
+            Historial del documento
+        </h1>
+
+        <p class="subtitulo">
+            «{{ documento.titulo }}»
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- VOLVER AL DOCUMENTO -->
+
+<div class="historial-volver">
+
+    <a
+        href="{% url 'documento' documento.id %}"
+        class="btn btn-secundario btn-sm"
+    >
+        ← Volver al documento
+    </a>
+
+</div>
+
+
+<!-- ============================================================
+     HISTORIAL
+     ============================================================ -->
+
+<div class="seccion historial-seccion">
+
+    {% if versiones %}
+
+        <div class="historial-info">
+
+            <span class="historial-info-icono">
+                📚
+            </span>
+
+            <div>
+
+                <strong>
+                    Historial de versiones
+                </strong>
+
+                <span>
+                    Aquí puedes consultar las versiones anteriores
+                    y restaurar una versión cuando tengas permisos.
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- LISTA DE VERSIONES -->
+
+        <ul class="lista-documentos historial-lista">
+
+            {% for version in versiones %}
+
+            <li class="version-fila historial-version">
+
+                <!-- INFORMACIÓN -->
+
+                <div class="version-informacion">
+
+                    <div class="version-icono">
+                        📄
+                    </div>
+
+                    <div>
+
+                        <div class="doc-titulo">
+                            Versión {{ version.id }}
+                        </div>
+
+                        <div class="doc-meta">
+
+                            <strong>
+                                {{ version.usuario.username|default:"Desconocido" }}
+                            </strong>
+
+                            ·
+
+                            {{ version.fecha|date:"d/m/Y H:i" }}
+
+                            ·
+
+                            {{ version.fecha|timesince }} atrás
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCIONES -->
+
+                <div class="acciones-historial">
+
+                    <a
+                        href="{% url 'ver_version' documento.id version.id %}"
+                        class="btn btn-secundario btn-sm"
+                    >
+                        👁 Ver
+                    </a>
+
+
+                    {% if puede_restaurar %}
+
+                    <a
+                        href="{% url 'restaurar_version' documento.id version.id %}"
+                        class="btn btn-primario btn-sm"
+                    >
+                        ↩ Restaurar
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </li>
+
+            {% endfor %}
+
+        </ul>
+
+
+    {% else %}
+
+        <!-- SIN VERSIONES -->
+
+        <div class="historial-vacio">
+
+            <div class="historial-vacio-icono">
+                📭
+            </div>
+
+            <h2>
+                No hay versiones todavía
+            </h2>
+
+            <p>
+                Todavía no hay versiones guardadas de este documento.
+            </p>
+
+            <a
+                href="{% url 'documento' documento.id %}"
+                class="btn btn-primario"
+            >
+                ← Volver al documento
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

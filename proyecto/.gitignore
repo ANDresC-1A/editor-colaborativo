@@ -1,0 +1,26 @@
+# Entorno / secretos
+.env
+.env.local
+.env.*.local
+
+# Base de datos local
+db.sqlite3
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+staticfiles/
+media/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

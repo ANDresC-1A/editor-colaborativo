@@ -1,0 +1,966 @@
+{% extends 'editor/base.html' %}
+
+{% block titulo %}
+Iniciar sesión — Editor Colaborativo
+{% endblock %}
+
+{% block clase_contenedor %}
+contenedor-auth
+{% endblock %}
+
+
+{% block contenido %}
+
+<style>
+
+    /* =========================================================
+       LOGIN - EDITOR COLABORATIVO
+       Diseño horizontal + responsive
+    ========================================================= */
+
+    .contenedor-auth {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+    .auth-page {
+        width: 100%;
+        min-height: calc(100vh - 80px);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 35px 25px;
+
+        box-sizing: border-box;
+
+        font-family:
+            Inter,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+
+        background:
+            radial-gradient(
+                circle at 10% 20%,
+                rgba(99, 102, 241, .12),
+                transparent 35%
+            ),
+            radial-gradient(
+                circle at 90% 80%,
+                rgba(124, 58, 237, .10),
+                transparent 35%
+            ),
+            #f5f7fb;
+    }
+
+
+    /* =========================================================
+       TARJETA PRINCIPAL
+    ========================================================= */
+
+    .auth-card {
+        width: 100%;
+        max-width: 1050px;
+
+        min-height: 560px;
+
+        display: grid;
+
+        grid-template-columns: 45% 55%;
+
+        overflow: hidden;
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 26px;
+
+        box-shadow:
+            0 25px 70px rgba(15, 23, 42, .12);
+
+        animation:
+            authEntrada .45s ease both;
+    }
+
+
+    @keyframes authEntrada {
+
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    }
+
+
+    /* =========================================================
+       PANEL IZQUIERDO
+    ========================================================= */
+
+    .auth-presentacion {
+
+        position: relative;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        padding: 60px;
+
+        overflow: hidden;
+
+        color: #ffffff;
+
+        background:
+            linear-gradient(
+                145deg,
+                #4f46e5 0%,
+                #6366f1 50%,
+                #7c3aed 100%
+            );
+    }
+
+
+    /* Círculo decorativo superior */
+
+    .auth-presentacion::before {
+
+        content: "";
+
+        position: absolute;
+
+        width: 360px;
+        height: 360px;
+
+        top: -180px;
+        right: -150px;
+
+        border-radius: 50%;
+
+        background:
+            rgba(255, 255, 255, .08);
+    }
+
+
+    /* Círculo decorativo inferior */
+
+    .auth-presentacion::after {
+
+        content: "";
+
+        position: absolute;
+
+        width: 300px;
+        height: 300px;
+
+        bottom: -170px;
+        left: -130px;
+
+        border-radius: 50%;
+
+        background:
+            rgba(255, 255, 255, .08);
+    }
+
+
+    /* =========================================================
+       ICONO
+    ========================================================= */
+
+    .auth-icono {
+
+        position: relative;
+        z-index: 2;
+
+        width: 68px;
+        height: 68px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 28px;
+
+        border-radius: 19px;
+
+        background:
+            rgba(255, 255, 255, .16);
+
+        border:
+            1px solid rgba(255, 255, 255, .25);
+
+        color: #ffffff;
+
+        font-size: 31px;
+
+        box-shadow:
+            0 10px 30px rgba(0, 0, 0, .10);
+    }
+
+
+    /* =========================================================
+       TEXTO IZQUIERDO
+    ========================================================= */
+
+    .auth-presentacion h2 {
+
+        position: relative;
+        z-index: 2;
+
+        margin: 0 0 18px;
+
+        color: #ffffff;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 36px;
+
+        line-height: 1.12;
+
+        font-weight: 800;
+
+        letter-spacing: -.9px;
+    }
+
+
+    .auth-presentacion p {
+
+        position: relative;
+        z-index: 2;
+
+        max-width: 390px;
+
+        margin: 0;
+
+        color:
+            rgba(255, 255, 255, .84);
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 15px;
+
+        line-height: 1.75;
+    }
+
+
+    /* =========================================================
+       BENEFICIOS
+    ========================================================= */
+
+    .auth-beneficios {
+
+        position: relative;
+        z-index: 2;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 15px;
+
+        margin-top: 35px;
+    }
+
+
+    .auth-beneficio {
+
+        display: flex;
+        align-items: center;
+
+        gap: 12px;
+
+        color:
+            rgba(255, 255, 255, .94);
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 14px;
+    }
+
+
+    .auth-check {
+
+        width: 26px;
+        height: 26px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        border-radius: 50%;
+
+        background:
+            rgba(255, 255, 255, .16);
+
+        border:
+            1px solid rgba(255, 255, 255, .10);
+
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+
+    /* =========================================================
+       PANEL DERECHO
+    ========================================================= */
+
+    .auth-formulario {
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        padding: 60px 70px;
+
+        background: #ffffff;
+    }
+
+
+    /* =========================================================
+       TÍTULO
+    ========================================================= */
+
+    .auth-formulario h1 {
+
+        margin: 0 0 9px;
+
+        color: #111827;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 30px;
+
+        line-height: 1.2;
+
+        font-weight: 800;
+
+        letter-spacing: -.7px;
+    }
+
+
+    .auth-subtitulo {
+
+        margin: 0 0 32px;
+
+        color: #64748b;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 14px;
+
+        line-height: 1.65;
+    }
+
+
+    /* =========================================================
+       CAMPOS
+    ========================================================= */
+
+    .auth-formulario .campo {
+
+        width: 100%;
+
+        margin-bottom: 21px;
+    }
+
+
+    .auth-formulario .campo label {
+
+        display: block;
+
+        margin-bottom: 8px;
+
+        color: #334155;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 13px;
+
+        font-weight: 700;
+    }
+
+
+    .auth-formulario .campo input {
+
+        display: block;
+
+        width: 100%;
+        height: 49px;
+
+        box-sizing: border-box;
+
+        padding:
+            0 15px;
+
+        border:
+            1px solid #dbe1ea;
+
+        border-radius: 11px;
+
+        outline: none;
+
+        background:
+            #f8fafc;
+
+        color: #1e293b;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 14px;
+
+        transition:
+            border-color .2s ease,
+            background .2s ease,
+            box-shadow .2s ease;
+    }
+
+
+    .auth-formulario .campo input:hover {
+
+        border-color:
+            #cbd5e1;
+    }
+
+
+    .auth-formulario .campo input:focus {
+
+        background:
+            #ffffff;
+
+        border-color:
+            #818cf8;
+
+        box-shadow:
+            0 0 0 4px
+            rgba(99, 102, 241, .10);
+    }
+
+
+    .auth-formulario .campo input::placeholder {
+
+        color:
+            #a0a9b8;
+    }
+
+
+    /* =========================================================
+       BOTÓN
+    ========================================================= */
+
+    .auth-btn {
+
+        width: 100%;
+
+        height: 49px;
+
+        margin-top: 4px;
+
+        border: none;
+
+        border-radius: 11px;
+
+        background:
+            linear-gradient(
+                135deg,
+                #6366f1,
+                #7c3aed
+            );
+
+        color: #ffffff;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size: 14px;
+
+        font-weight: 750;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 8px 22px
+            rgba(99, 102, 241, .24);
+
+        transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            filter .18s ease;
+    }
+
+
+    .auth-btn:hover {
+
+        transform:
+            translateY(-1px);
+
+        filter:
+            brightness(1.03);
+
+        box-shadow:
+            0 12px 28px
+            rgba(99, 102, 241, .32);
+    }
+
+
+    .auth-btn:active {
+
+        transform:
+            translateY(0);
+    }
+
+
+    /* =========================================================
+       PIE
+    ========================================================= */
+
+    .auth-footer {
+
+        margin:
+            25px 0 0;
+
+        text-align:
+            center;
+
+        color:
+            #64748b;
+
+        font-family:
+            Inter,
+            system-ui,
+            sans-serif;
+
+        font-size:
+            13px;
+    }
+
+
+    .auth-footer a {
+
+        color:
+            #4f46e5;
+
+        font-weight:
+            700;
+
+        text-decoration:
+            none;
+    }
+
+
+    .auth-footer a:hover {
+
+        text-decoration:
+            underline;
+    }
+
+
+    /* =========================================================
+       TABLET
+    ========================================================= */
+
+    @media (max-width: 850px) {
+
+        .auth-page {
+
+            padding:
+                25px 18px;
+        }
+
+
+        .auth-card {
+
+            max-width:
+                700px;
+
+            grid-template-columns:
+                1fr;
+        }
+
+
+        .auth-presentacion {
+
+            padding:
+                40px 45px;
+        }
+
+
+        .auth-presentacion h2 {
+
+            font-size:
+                29px;
+        }
+
+
+        .auth-presentacion p {
+
+            max-width:
+                600px;
+        }
+
+
+        .auth-beneficios {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap:
+                10px;
+
+            margin-top:
+                25px;
+        }
+
+
+        .auth-beneficio {
+
+            font-size:
+                12px;
+        }
+
+
+        .auth-formulario {
+
+            padding:
+                45px 50px;
+        }
+
+    }
+
+
+    /* =========================================================
+       CELULAR
+    ========================================================= */
+
+    @media (max-width: 600px) {
+
+        .auth-page {
+
+            min-height:
+                auto;
+
+            padding:
+                12px 10px;
+        }
+
+
+        .auth-card {
+
+            min-height:
+                auto;
+
+            border-radius:
+                20px;
+        }
+
+
+        .auth-presentacion {
+
+            padding:
+                30px 25px;
+        }
+
+
+        .auth-icono {
+
+            width:
+                52px;
+
+            height:
+                52px;
+
+            margin-bottom:
+                18px;
+
+            border-radius:
+                15px;
+
+            font-size:
+                24px;
+        }
+
+
+        .auth-presentacion h2 {
+
+            font-size:
+                25px;
+        }
+
+
+        .auth-presentacion p {
+
+            font-size:
+                13px;
+
+            line-height:
+                1.6;
+        }
+
+
+        .auth-beneficios {
+
+            display:
+                none;
+        }
+
+
+        .auth-formulario {
+
+            padding:
+                32px 25px;
+        }
+
+
+        .auth-formulario h1 {
+
+            font-size:
+                25px;
+        }
+
+
+        .auth-subtitulo {
+
+            margin-bottom:
+                25px;
+        }
+
+    }
+
+
+    /* =========================================================
+       CELULARES PEQUEÑOS
+    ========================================================= */
+
+    @media (max-width: 380px) {
+
+        .auth-presentacion {
+
+            padding:
+                25px 20px;
+        }
+
+
+        .auth-formulario {
+
+            padding:
+                28px 20px;
+        }
+
+    }
+
+</style>
+
+
+<div class="auth-page">
+
+    <div class="auth-card">
+
+
+        <!-- =================================================
+             PANEL IZQUIERDO
+        ================================================== -->
+
+        <div class="auth-presentacion">
+
+
+            <div class="auth-icono">
+                ✦
+            </div>
+
+
+            <h2>
+                Editor<br>
+                Colaborativo
+            </h2>
+
+
+            <p>
+                Trabaja en tus documentos,
+                compártelos y colabora en
+                tiempo real desde cualquier lugar.
+            </p>
+
+
+            <div class="auth-beneficios">
+
+
+                <div class="auth-beneficio">
+
+                    <span class="auth-check">
+                        ✓
+                    </span>
+
+                    <span>
+                        Documentos en tiempo real
+                    </span>
+
+                </div>
+
+
+                <div class="auth-beneficio">
+
+                    <span class="auth-check">
+                        ✓
+                    </span>
+
+                    <span>
+                        Comparte con otros usuarios
+                    </span>
+
+                </div>
+
+
+                <div class="auth-beneficio">
+
+                    <span class="auth-check">
+                        ✓
+                    </span>
+
+                    <span>
+                        Historial de documentos
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             FORMULARIO LOGIN
+        ================================================== -->
+
+        <div class="auth-formulario">
+
+
+            <h1>
+                Iniciar sesión
+            </h1>
+
+
+            <p class="auth-subtitulo">
+                Entra para ver y editar tus documentos.
+            </p>
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                <!-- USUARIO -->
+
+                <div class="campo">
+
+                    <label for="username">
+                        Usuario
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value="{{ username|default:'' }}"
+                        autofocus
+                        required
+                        autocomplete="username"
+                        placeholder="Ingresa tu usuario"
+                    >
+
+                </div>
+
+
+                <!-- CONTRASEÑA -->
+
+                <div class="campo">
+
+                    <label for="password">
+                        Contraseña
+                    </label>
+
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Ingresa tu contraseña"
+                    >
+
+                </div>
+
+
+                <!-- BOTÓN -->
+
+                <button
+                    type="submit"
+                    class="auth-btn"
+                >
+                    Entrar
+                </button>
+
+            </form>
+
+
+            <!-- REGISTRO -->
+
+            <p class="auth-footer">
+
+                ¿No tienes cuenta?
+
+                <a href="{% url 'register' %}">
+                    Regístrate
+                </a>
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

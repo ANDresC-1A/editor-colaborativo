@@ -1,0 +1,958 @@
+{% extends 'editor/base.html' %}
+{% block titulo %}{{ documento.titulo }} — Editor Colaborativo{% endblock %}
+
+{% block contenido %}
+
+<style>
+    /* =========================================================
+       EDITOR COLABORATIVO - DISEÑO
+       No modifica la lógica del editor
+    ========================================================= */
+
+    .editor-page {
+        min-height: calc(100vh - 40px);
+        padding: 30px;
+        background:
+            radial-gradient(circle at top left, rgba(99, 102, 241, .10), transparent 35%),
+            radial-gradient(circle at bottom right, rgba(14, 165, 233, .08), transparent 35%),
+            #f5f7fb;
+    }
+
+    .editor-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* CABECERA */
+
+    .editor-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 25px;
+        padding: 26px 30px;
+        background: rgba(255, 255, 255, .94);
+        border: 1px solid #e6eaf0;
+        border-radius: 20px 20px 0 0;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, .06);
+    }
+
+    .editor-info {
+        min-width: 0;
+    }
+
+    .editor-info h1 {
+        margin: 0 0 9px;
+        color: #111827;
+        font-size: 27px;
+        font-weight: 750;
+        letter-spacing: -.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .editor-estado {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #64748b;
+        font-size: 13px;
+        min-height: 20px;
+    }
+
+    /* ESTADO CONEXIÓN */
+
+    .punto-conexion {
+        width: 9px;
+        height: 9px;
+        display: inline-block;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, .12);
+        transition: .25s ease;
+    }
+
+    .punto-conexion.perdida {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, .12);
+    }
+
+    #texto-conexion {
+        font-weight: 650;
+        color: #16a34a;
+    }
+
+    .punto-conexion.perdida + #texto-conexion {
+        color: #dc2626;
+    }
+
+    /* USUARIOS */
+
+    .usuarios-conectados {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        min-width: 100px;
+    }
+
+    .avatar-usuario {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -7px;
+        border: 3px solid white;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        font-size: 13px;
+        font-weight: 750;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, .15);
+        cursor: default;
+        transition: transform .2s ease;
+    }
+
+    .avatar-usuario:first-child {
+        margin-left: 0;
+    }
+
+    .avatar-usuario:hover {
+        transform: translateY(-3px);
+        z-index: 10;
+    }
+
+    /* BARRA DE HERRAMIENTAS */
+
+    .barra-herramientas {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 16px 22px;
+        background: #ffffff;
+        border-left: 1px solid #e6eaf0;
+        border-right: 1px solid #e6eaf0;
+        border-bottom: 1px solid #e6eaf0;
+    }
+
+    .barra-herramientas::before {
+        content: "Herramientas";
+        margin-right: auto;
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .7px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 38px;
+        padding: 8px 15px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 650;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+            transform .18s ease,
+            box-shadow .18s ease,
+            background .18s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-secundario {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        color: #334155;
+    }
+
+    .btn-secundario:hover {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+        color: #4338ca;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, .10);
+    }
+
+    .btn-peligro {
+        background: #fff1f2;
+        border-color: #fecdd3;
+        color: #dc2626;
+    }
+
+    .btn-peligro:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, .10);
+    }
+
+    .btn-sm {
+        font-size: 13px;
+    }
+
+    /* SOLO LECTURA */
+
+    .etiqueta {
+        display: inline-flex;
+        align-items: center;
+        min-height: 35px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .etiqueta-lector {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    /* ÁREA DEL DOCUMENTO */
+
+    #area-documento {
+        display: block;
+        width: 100%;
+        min-height: 650px;
+        box-sizing: border-box;
+        resize: vertical;
+        padding: 38px 42px;
+        border: 1px solid #e6eaf0;
+        border-top: none;
+        border-radius: 0 0 20px 20px;
+        outline: none;
+        background: #ffffff;
+        color: #1e293b;
+        font-family:
+            Inter,
+            ui-sans-serif,
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            sans-serif;
+        font-size: 16px;
+        line-height: 1.85;
+        letter-spacing: .1px;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, .07);
+        transition:
+            border-color .2s ease,
+            box-shadow .2s ease;
+    }
+
+    #area-documento::placeholder {
+        color: #a8b1c0;
+    }
+
+    #area-documento:focus {
+        border-color: #a5b4fc;
+        box-shadow:
+            0 12px 35px rgba(15, 23, 42, .07),
+            0 0 0 3px rgba(99, 102, 241, .10);
+    }
+
+    #area-documento:disabled {
+        background:
+            linear-gradient(rgba(248, 250, 252, .94), rgba(248, 250, 252, .94)),
+            repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 31px,
+                rgba(148, 163, 184, .08) 32px
+            );
+        color: #475569;
+        cursor: not-allowed;
+    }
+
+    /* INDICADOR DE ESCRITURA */
+
+    #editando-indicador {
+        min-height: 24px;
+        margin-top: 10px;
+        padding-left: 7px;
+        color: #6366f1;
+        font-size: 12px;
+        font-weight: 600;
+        font-style: italic;
+        transition: opacity .2s ease;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 800px) {
+
+        .editor-page {
+            padding: 12px;
+        }
+
+        .editor-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .editor-info h1 {
+            font-size: 22px;
+            white-space: normal;
+        }
+
+        .usuarios-conectados {
+            justify-content: flex-start;
+        }
+
+        .barra-herramientas {
+            padding: 14px;
+        }
+
+        .barra-herramientas::before {
+            width: 100%;
+            margin-bottom: 2px;
+        }
+
+        #area-documento {
+            min-height: 550px;
+            padding: 25px 20px;
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+
+        .barra-herramientas {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .barra-herramientas::before {
+            text-align: center;
+        }
+
+        .barra-herramientas .btn,
+        .barra-herramientas .etiqueta {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+</style>
+
+<div class="editor-page">
+    <div class="editor-container">
+
+        <!-- CABECERA DEL DOCUMENTO -->
+        <div class="editor-header">
+
+            <div class="editor-info">
+                <h1>{{ documento.titulo }}</h1>
+
+                <div class="editor-estado">
+                    <span id="punto-conexion" class="punto-conexion"></span>
+
+                    <span id="texto-conexion">
+                        Conectando...
+                    </span>
+
+                    <span>·</span>
+
+                    <span id="texto-guardado">
+                        {% if documento.ultimo_editor %}
+                            Última modificación por {{ documento.ultimo_editor.username }}
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- USUARIOS CONECTADOS -->
+            <div
+                class="usuarios-conectados"
+                id="usuarios-conectados"
+            ></div>
+
+        </div>
+
+
+        <!-- BARRA DE HERRAMIENTAS -->
+        <div class="barra-herramientas">
+
+            {% if es_propietario %}
+            <a
+                href="{% url 'compartir_documento' documento.id %}"
+                class="btn btn-secundario btn-sm"
+            >
+                🔗 Compartir
+            </a>
+            {% endif %}
+
+
+            <a
+                href="{% url 'historial_documento' documento.id %}"
+                class="btn btn-secundario btn-sm"
+            >
+                🕘 Historial ({{ total_versiones }})
+            </a>
+
+
+            {% if es_propietario %}
+            <a
+                href="{% url 'eliminar_documento' documento.id %}"
+                class="btn btn-peligro btn-sm"
+            >
+                🗑️ Eliminar
+            </a>
+            {% endif %}
+
+
+            {% if not puede_editar %}
+            <span
+                class="etiqueta etiqueta-lector"
+                style="align-self:center;"
+            >
+                👁 Solo lectura
+            </span>
+            {% endif %}
+
+        </div>
+
+
+        <!-- DOCUMENTO -->
+        <textarea
+            id="area-documento"
+            {% if not puede_editar %}disabled{% endif %}
+            placeholder="Comienza a escribir aquí..."
+        >{{ documento.contenido }}</textarea>
+
+
+        <!-- USUARIOS ESCRIBIENDO -->
+        <div id="editando-indicador"></div>
+
+    </div>
+</div>
+
+
+{{ documento.id|json_script:"doc-id" }}
+{{ puede_editar|yesno:"true,false"|json_script:"puede-editar" }}
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+(function () {
+
+    const docId = JSON.parse(
+        document.getElementById('doc-id').textContent
+    );
+
+    const puedeEditar = JSON.parse(
+        document.getElementById('puede-editar').textContent
+    );
+
+
+    const textarea =
+        document.getElementById('area-documento');
+
+    const puntoConexion =
+        document.getElementById('punto-conexion');
+
+    const textoConexion =
+        document.getElementById('texto-conexion');
+
+    const textoGuardado =
+        document.getElementById('texto-guardado');
+
+    const usuariosConectadosEl =
+        document.getElementById('usuarios-conectados');
+
+    const editandoIndicador =
+        document.getElementById('editando-indicador');
+
+
+    const protocolo =
+        window.location.protocol === 'https:'
+            ? 'wss://'
+            : 'ws://';
+
+
+    const wsUrl =
+        protocolo +
+        window.location.host +
+        '/ws/documento/' +
+        docId +
+        '/';
+
+
+    let socket = null;
+
+    let reintentoMs = 1000;
+
+    const REINTENTO_MAX_MS = 10000;
+
+
+    let debounceTimer = null;
+
+    const DEBOUNCE_MS = 800;
+
+
+    let ultimoContenidoEnviado =
+        textarea.value;
+
+
+    let recibiendoActualizacionRemota =
+        false;
+
+
+    let escribiendoTimer = null;
+
+    const usuariosEscribiendo =
+        new Set();
+
+
+    function actualizarEstadoConexion(conectado) {
+
+        puntoConexion.classList.toggle(
+            'perdida',
+            !conectado
+        );
+
+        textoConexion.textContent =
+            conectado
+                ? '✓ Conectado'
+                : '⚠ Conexión perdida — reintentando...';
+
+    }
+
+
+    function inicialesDe(username) {
+
+        return (
+            username || '?'
+        )
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+
+    }
+
+
+    function renderUsuariosConectados(lista) {
+
+        usuariosConectadosEl.innerHTML = '';
+
+        lista.forEach(function (username) {
+
+            const avatar =
+                document.createElement('span');
+
+            avatar.className =
+                'avatar-usuario';
+
+            avatar.title =
+                username;
+
+            avatar.textContent =
+                inicialesDe(username);
+
+            usuariosConectadosEl.appendChild(
+                avatar
+            );
+
+        });
+
+    }
+
+
+    function agregarUsuarioConectado(username) {
+
+        const existentes =
+            Array.from(
+                usuariosConectadosEl
+                    .querySelectorAll('.avatar-usuario')
+            )
+            .map(
+                el => el.title
+            );
+
+
+        if (!existentes.includes(username)) {
+
+            renderUsuariosConectados(
+                existentes.concat([username])
+            );
+
+        }
+
+    }
+
+
+    function quitarUsuarioConectado(username) {
+
+        const existentes =
+            Array.from(
+                usuariosConectadosEl
+                    .querySelectorAll('.avatar-usuario')
+            )
+            .map(
+                el => el.title
+            )
+            .filter(
+                u => u !== username
+            );
+
+
+        renderUsuariosConectados(
+            existentes
+        );
+
+    }
+
+
+    function actualizarIndicadorEscribiendo() {
+
+        if (usuariosEscribiendo.size === 0) {
+
+            editandoIndicador.textContent = '';
+
+        } else {
+
+            const nombres =
+                Array.from(
+                    usuariosEscribiendo
+                );
+
+            const verbo =
+                nombres.length === 1
+                    ? 'está'
+                    : 'están';
+
+
+            editandoIndicador.textContent =
+                nombres.join(', ') +
+                ' ' +
+                verbo +
+                ' escribiendo...';
+
+        }
+
+    }
+
+
+    function conectar() {
+
+        socket =
+            new WebSocket(wsUrl);
+
+
+        socket.onopen = function () {
+
+            actualizarEstadoConexion(true);
+
+            reintentoMs = 1000;
+
+        };
+
+
+        socket.onclose = function () {
+
+            actualizarEstadoConexion(false);
+
+            setTimeout(
+                conectar,
+                reintentoMs
+            );
+
+            reintentoMs =
+                Math.min(
+                    reintentoMs * 2,
+                    REINTENTO_MAX_MS
+                );
+
+        };
+
+
+        socket.onerror = function () {
+
+            actualizarEstadoConexion(false);
+
+        };
+
+
+        socket.onmessage = function (event) {
+
+            const data =
+                JSON.parse(event.data);
+
+
+            switch (data.tipo) {
+
+                case 'inicial':
+
+                    recibiendoActualizacionRemota = true;
+
+                    textarea.value =
+                        data.contenido;
+
+                    ultimoContenidoEnviado =
+                        data.contenido;
+
+                    recibiendoActualizacionRemota = false;
+
+
+                    renderUsuariosConectados(
+                        data.usuarios_conectados || []
+                    );
+
+
+                    if (data.ultimo_editor) {
+
+                        textoGuardado.textContent =
+                            'Última modificación por ' +
+                            data.ultimo_editor;
+
+                    }
+
+                    break;
+
+
+                case 'update':
+
+                    if (
+                        data.contenido !==
+                        textarea.value
+                    ) {
+
+                        const posicion =
+                            textarea.selectionStart;
+
+
+                        recibiendoActualizacionRemota = true;
+
+                        textarea.value =
+                            data.contenido;
+
+                        recibiendoActualizacionRemota = false;
+
+
+                        try {
+
+                            textarea.selectionStart =
+                                textarea.selectionEnd =
+                                posicion;
+
+                        } catch (e) {}
+
+                    }
+
+
+                    ultimoContenidoEnviado =
+                        data.contenido;
+
+
+                    textoGuardado.textContent =
+                        'Última modificación por ' +
+                        data.usuario;
+
+                    break;
+
+
+                case 'guardado':
+
+                    textoGuardado.textContent =
+                        '✓ Guardado';
+
+                    break;
+
+
+                case 'error':
+
+                    textoGuardado.textContent =
+                        '✕ ' +
+                        data.mensaje;
+
+                    break;
+
+
+                case 'usuario_conectado':
+
+                    agregarUsuarioConectado(
+                        data.usuario
+                    );
+
+                    break;
+
+
+                case 'usuario_desconectado':
+
+                    quitarUsuarioConectado(
+                        data.usuario
+                    );
+
+                    usuariosEscribiendo.delete(
+                        data.usuario
+                    );
+
+                    actualizarIndicadorEscribiendo();
+
+                    break;
+
+
+                case 'usuario_editando':
+
+                    if (data.escribiendo) {
+
+                        usuariosEscribiendo.add(
+                            data.usuario
+                        );
+
+                    } else {
+
+                        usuariosEscribiendo.delete(
+                            data.usuario
+                        );
+
+                    }
+
+                    actualizarIndicadorEscribiendo();
+
+                    break;
+
+            }
+
+        };
+
+    }
+
+
+    function enviarContenido() {
+
+        if (
+            !socket ||
+            socket.readyState !== WebSocket.OPEN
+        ) {
+            return;
+        }
+
+
+        if (
+            textarea.value ===
+            ultimoContenidoEnviado
+        ) {
+            return;
+        }
+
+
+        ultimoContenidoEnviado =
+            textarea.value;
+
+
+        textoGuardado.textContent =
+            'Guardando...';
+
+
+        socket.send(
+            JSON.stringify({
+                tipo: 'update',
+                contenido: textarea.value
+            })
+        );
+
+    }
+
+
+    function notificarEscribiendo(escribiendo) {
+
+        if (
+            !socket ||
+            socket.readyState !== WebSocket.OPEN
+        ) {
+            return;
+        }
+
+
+        socket.send(
+            JSON.stringify({
+                tipo: 'editando',
+                escribiendo: escribiendo
+            })
+        );
+
+    }
+
+
+    if (puedeEditar) {
+
+        textarea.addEventListener(
+            'input',
+            function () {
+
+                if (
+                    recibiendoActualizacionRemota
+                ) {
+                    return;
+                }
+
+
+                notificarEscribiendo(true);
+
+
+                clearTimeout(
+                    escribiendoTimer
+                );
+
+
+                escribiendoTimer =
+                    setTimeout(
+                        function () {
+                            notificarEscribiendo(false);
+                        },
+                        1500
+                    );
+
+
+                clearTimeout(
+                    debounceTimer
+                );
+
+
+                debounceTimer =
+                    setTimeout(
+                        enviarContenido,
+                        DEBOUNCE_MS
+                    );
+
+            }
+        );
+
+
+        window.addEventListener(
+            'beforeunload',
+            function () {
+
+                if (
+                    textarea.value !==
+                    ultimoContenidoEnviado
+                ) {
+                    enviarContenido();
+                }
+
+            }
+        );
+
+    }
+
+
+    conectar();
+
+})();
+</script>
+
+{% endblock %}
+```

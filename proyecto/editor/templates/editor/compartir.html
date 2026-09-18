@@ -1,0 +1,358 @@
+{% extends 'editor/base.html' %}
+
+{% block titulo %}
+Compartir «{{ documento.titulo }}» — Editor Colaborativo
+{% endblock %}
+
+
+{% block contenido %}
+
+<!-- ============================================================
+     ENCABEZADO
+     ============================================================ -->
+
+<div class="compartir-encabezado">
+
+    <div class="compartir-icono">
+        👥
+    </div>
+
+    <div>
+
+        <h1>
+            Compartir documento
+        </h1>
+
+        <p class="subtitulo">
+            «{{ documento.titulo }}»
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- VOLVER -->
+
+<div class="compartir-volver">
+
+    <a
+        href="{% url 'documento' documento.id %}"
+        class="btn btn-secundario btn-sm"
+    >
+        ← Volver al documento
+    </a>
+
+</div>
+
+
+<!-- ============================================================
+     PERSONAS CON ACCESO
+     ============================================================ -->
+
+<div class="seccion compartir-seccion">
+
+    <div class="seccion-titulo-compartir">
+
+        <div>
+            <h2>Personas con acceso</h2>
+
+            <p>
+                Administra quién puede acceder a este documento.
+            </p>
+        </div>
+
+        <span class="acceso-icono">
+            🔐
+        </span>
+
+    </div>
+
+
+    <ul class="lista-documentos lista-accesos">
+
+        <!-- PROPIETARIO -->
+
+        <li class="doc-fila acceso-fila">
+
+            <div class="usuario-acceso">
+
+                <div class="avatar-acceso">
+                    {{ documento.propietario.username|first|upper }}
+                </div>
+
+                <div>
+
+                    <div class="doc-titulo">
+                        {{ documento.propietario.username }}
+                    </div>
+
+                    <div class="doc-meta">
+                        Propietario del documento
+                    </div>
+
+                </div>
+
+            </div>
+
+            <span class="etiqueta etiqueta-propietario">
+                Propietaria
+            </span>
+
+        </li>
+
+
+        <!-- USUARIOS COMPARTIDOS -->
+
+        {% for permiso in documento.permisos.all %}
+
+        <li class="doc-fila acceso-fila">
+
+            <div class="usuario-acceso">
+
+                <div class="avatar-acceso">
+                    {{ permiso.usuario.username|first|upper }}
+                </div>
+
+                <div>
+
+                    <div class="doc-titulo">
+                        {{ permiso.usuario.username }}
+                    </div>
+
+                    <div class="doc-meta">
+
+                        Compartido por
+                        {{ permiso.compartido_por.username }}
+
+                        ·
+
+                        {{ permiso.fecha_compartido|timesince }}
+                        atrás
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PERMISOS Y ACCIONES -->
+
+            <div class="acciones-acceso">
+
+                <span
+                    class="etiqueta
+                    {% if permiso.puede_editar %}
+                        etiqueta-editor
+                    {% else %}
+                        etiqueta-lector
+                    {% endif %}"
+                >
+
+                    {% if permiso.puede_editar %}
+                        ✏️ Editor
+                    {% else %}
+                        👁 Solo lectura
+                    {% endif %}
+
+                </span>
+
+
+                <!-- CAMBIAR PERMISO -->
+
+                <form
+                    method="post"
+                    class="form-accion-acceso"
+                >
+
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="username"
+                        value="{{ permiso.usuario.username }}"
+                    >
+
+                    <input
+                        type="hidden"
+                        name="puede_editar"
+                        value="{% if not permiso.puede_editar %}on{% endif %}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="btn btn-secundario btn-sm"
+                    >
+
+                        {% if permiso.puede_editar %}
+                            👁 Solo lectura
+                        {% else %}
+                            ✏️ Hacer editor
+                        {% endif %}
+
+                    </button>
+
+                </form>
+
+
+                <!-- REVOCAR -->
+
+                <form
+                    method="post"
+                    action="{% url 'eliminar_permiso' documento.id permiso.id %}"
+                    class="form-accion-acceso"
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-peligro btn-sm"
+                    >
+                        🗑 Revocar
+                    </button>
+
+                </form>
+
+            </div>
+
+        </li>
+
+
+        {% empty %}
+
+        <!-- SIN USUARIOS -->
+
+        <li class="acceso-vacio">
+
+            <div class="acceso-vacio-icono">
+                👤
+            </div>
+
+            <strong>
+                Nadie más tiene acceso todavía
+            </strong>
+
+            <p>
+                Comparte este documento con otros usuarios
+                utilizando el formulario de abajo.
+            </p>
+
+        </li>
+
+        {% endfor %}
+
+    </ul>
+
+</div>
+
+
+<!-- ============================================================
+     COMPARTIR CON ALGUIEN
+     ============================================================ -->
+
+<div class="seccion compartir-seccion">
+
+    <div class="seccion-titulo-compartir">
+
+        <div>
+
+            <h2>
+                Compartir con alguien más
+            </h2>
+
+            <p>
+                Selecciona un usuario y define qué puede hacer
+                dentro del documento.
+            </p>
+
+        </div>
+
+        <span class="acceso-icono">
+            ➕
+        </span>
+
+    </div>
+
+
+    <form method="post" class="form-compartir">
+
+        {% csrf_token %}
+
+
+        <!-- USUARIO -->
+
+        <div class="campo">
+
+            <label for="username">
+                Nombre de usuario
+            </label>
+
+            <select
+                id="username"
+                name="username"
+                required
+            >
+
+                <option value="">
+                    Selecciona un usuario...
+                </option>
+
+                {% for u in usuarios_disponibles %}
+
+                <option value="{{ u.username }}">
+                    {{ u.username }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+            <small class="ayuda-campo">
+                El usuario seleccionado tendrá acceso al documento.
+            </small>
+
+        </div>
+
+
+        <!-- PERMISO -->
+
+        <div class="permiso-selector">
+
+            <div class="campo-checkbox">
+
+                <input
+                    type="checkbox"
+                    id="puede_editar"
+                    name="puede_editar"
+                >
+
+                <label for="puede_editar">
+                    <strong>Puede editar</strong>
+
+                    <span>
+                        Si no está marcado, tendrá acceso
+                        solamente de lectura.
+                    </span>
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- BOTÓN -->
+
+        <button
+            type="submit"
+            class="btn btn-primario btn-compartir"
+        >
+            👥 Compartir documento
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

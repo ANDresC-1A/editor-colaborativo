@@ -1,0 +1,103 @@
+{% extends 'editor/base.html' %}
+
+{% block titulo %}
+Nuevo documento — Editor Colaborativo
+{% endblock %}
+
+{% block clase_contenedor %}
+contenedor-angosto
+{% endblock %}
+
+
+{% block contenido %}
+
+<div class="tarjeta tarjeta-nuevo-documento">
+
+    <!-- ICONO -->
+    <div class="nuevo-icono">
+        📄
+    </div>
+
+
+    <!-- ENCABEZADO -->
+    <h1>Nuevo documento</h1>
+
+    <p class="subtitulo">
+        Crea un nuevo documento y comienza a trabajar en él.
+    </p>
+
+
+    <!-- INFORMACIÓN -->
+    <div class="info-nuevo">
+
+        <span class="info-nuevo-icono">
+            ✨
+        </span>
+
+        <div>
+            <strong>Comienza un nuevo proyecto</strong>
+
+            <span>
+                Primero asigna un título. Podrás modificar el
+                contenido después.
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+    <form method="post">
+
+        {% csrf_token %}
+
+
+        <div class="campo">
+
+            <label for="titulo">
+                Título del documento
+            </label>
+
+            <input
+                type="text"
+                id="titulo"
+                name="titulo"
+                placeholder="Ej. Proyecto de investigación"
+                maxlength="200"
+                autocomplete="off"
+                autofocus
+                required
+            >
+
+            <small class="ayuda-campo">
+                Escribe un nombre que te permita identificar
+                fácilmente el documento.
+            </small>
+
+        </div>
+
+
+        <!-- BOTONES -->
+        <div class="acciones-nuevo">
+
+            <a
+                href="{% url 'dashboard' %}"
+                class="btn btn-secundario btn-cancelar-nuevo"
+            >
+                ← Cancelar
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primario btn-crear"
+            >
+                 Crear documento
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
