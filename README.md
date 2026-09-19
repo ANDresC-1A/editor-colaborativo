@@ -25,6 +25,12 @@ Los usuarios autenticados pueden:
 - Eliminar sus propios documentos.
 
 ---
+<!-- Opción A: Cierra la etiqueta si tienes una segunda imagen -->
+<p align="center">
+  <img src="IMAGEN1.png" width="900">
+  <img src="imagen2.png" width="900">
+</p>
+
 
 ## 🎯 Objetivos del proyecto
 
