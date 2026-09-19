@@ -689,7 +689,7 @@ Este proyecto permite aplicar conocimientos de:
 
 # 👨‍💻 Autor
 
-Proyecto desarrollado con fines educativos y de portafolio.
+ANDRES CONTRERAS , WILMER FLORES
 
 ---
 
